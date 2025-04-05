@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import SubscribeForm from './components/SubscribeForm';
 
 export default function NovaVentureLanding() {
