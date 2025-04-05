@@ -11,21 +11,18 @@ export default function SubscribeForm() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/subscribe', {
+      const response = await fetch('https://api.novaventure.dev/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Origin': window.location.origin
         },
         body: JSON.stringify({ email }),
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         setStatus('success');
         setMessage('✅ Subscribed successfully');
         setEmail('');
