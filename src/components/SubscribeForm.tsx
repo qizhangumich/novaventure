@@ -16,7 +16,7 @@ export default function SubscribeForm() {
     try {
       // Get the current URL for logging
       const apiUrl = import.meta.env.PROD 
-        ? 'https://novaventure.vercel.app/api/subscribe'
+        ? 'https://www.thenovaventure.com/api/subscribe'
         : '/api/subscribe';
       
       console.log('Sending request to:', apiUrl);
