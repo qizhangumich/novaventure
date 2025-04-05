@@ -5,17 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run generate-icons && tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.14",
     "@types/node": "^20.11.19",
     "@vercel/node": "^3.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",
