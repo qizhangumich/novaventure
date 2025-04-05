@@ -46,8 +46,7 @@ export default function SubscribeForm() {
       }
     } catch (error) {
       console.error('Subscription error:', {
-        message: error.message,
-        stack: error.stack,
+        message: error instanceof Error ? error.message : 'Unknown error',
         error
       });
       setStatus('error');

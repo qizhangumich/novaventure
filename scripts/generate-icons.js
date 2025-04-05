@@ -1,43 +1,24 @@
-const sharp = require('sharp');
-const fs = require('fs').promises;
-const path = require('path');
+import sharp from 'sharp';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const ICON_SIZES = [16, 32, 48, 64, 96, 128, 192, 256, 384, 512];
-const SOURCE_ICON = path.join(__dirname, '../src/assets/logo.png');
-const PUBLIC_DIR = path.join(__dirname, '../public');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const inputFile = path.join(__dirname, '../public/logo.svg');
+const outputDir = path.join(__dirname, '../public');
 
 async function generateIcons() {
   try {
-    // Ensure public directory exists
-    await fs.mkdir(PUBLIC_DIR, { recursive: true });
-
-    // Generate favicon.ico (multi-size)
-    await sharp(SOURCE_ICON)
+    const svgBuffer = await fs.readFile(inputFile);
+    
+    // Generate favicon.ico (32x32)
+    await sharp(svgBuffer)
       .resize(32, 32)
-      .toFile(path.join(PUBLIC_DIR, 'favicon.ico'));
+      .toFile(path.join(outputDir, 'favicon.ico'));
 
-    // Generate PNG icons
-    for (const size of ICON_SIZES) {
-      await sharp(SOURCE_ICON)
-        .resize(size, size)
-        .toFile(path.join(PUBLIC_DIR, `icon-${size}x${size}.png`));
-    }
-
-    // Generate apple-touch-icon
-    await sharp(SOURCE_ICON)
-      .resize(180, 180)
-      .toFile(path.join(PUBLIC_DIR, 'apple-touch-icon.png'));
-
-    // Generate android chrome icons
-    await sharp(SOURCE_ICON)
-      .resize(192, 192)
-      .toFile(path.join(PUBLIC_DIR, 'android-chrome-192x192.png'));
-
-    await sharp(SOURCE_ICON)
-      .resize(512, 512)
-      .toFile(path.join(PUBLIC_DIR, 'android-chrome-512x512.png'));
-
-    console.log('✅ All icons generated successfully!');
+    console.log('Icons generated successfully!');
   } catch (error) {
     console.error('Error generating icons:', error);
     process.exit(1);
