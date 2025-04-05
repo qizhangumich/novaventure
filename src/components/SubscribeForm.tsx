@@ -16,7 +16,7 @@ export default function SubscribeForm() {
     try {
       // Get the current URL for logging
       const apiUrl = import.meta.env.PROD 
-        ? 'https://www.thenovaventure.com/api/subscribe'
+        ? `${window.location.origin}/api/subscribe`
         : '/api/subscribe';
       
       console.log('Sending request to:', apiUrl);
