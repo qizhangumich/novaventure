@@ -7,17 +7,19 @@ export default defineConfig({
   base: './',
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
     sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          react: ['react', 'react-dom'],
+          'react-vendor': ['react', 'react-dom'],
         },
       },
     },
   },
   server: {
-    port: 3000
-  }
+    port: 3000,
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+  },
 }); 

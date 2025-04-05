@@ -10,30 +10,48 @@ export default function SubscribeForm() {
     setStatus('loading');
     setMessage('');
 
+    // Log the attempt
+    console.log('Attempting to subscribe with email:', email);
+
     try {
-      const response = await fetch('https://api.novaventure.dev/subscribe', {
+      // Get the current URL for logging
+      const apiUrl = import.meta.env.PROD 
+        ? 'https://novaventure.vercel.app/api/subscribe'
+        : '/api/subscribe';
+      
+      console.log('Sending request to:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Origin': window.location.origin
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ email }),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('API Response:', { status: response.status, data });
 
       if (response.ok && data.success) {
         setStatus('success');
-        setMessage('✅ Subscribed successfully');
+        setMessage('✅ Successfully subscribed! Thank you for joining NovaVenture.');
         setEmail('');
       } else {
         setStatus('error');
-        setMessage(data.error || 'Failed to subscribe');
+        const errorMessage = data.error || 'Failed to subscribe. Please try again.';
+        console.error('Subscription failed:', errorMessage);
+        setMessage(errorMessage);
       }
     } catch (error) {
-      console.error('Subscription error:', error);
+      console.error('Subscription error:', {
+        message: error.message,
+        stack: error.stack,
+        error
+      });
       setStatus('error');
-      setMessage('Failed to subscribe. Please try again.');
+      setMessage('Network error. Please check your connection and try again.');
     }
   };
 
