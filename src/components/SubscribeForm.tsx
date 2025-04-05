@@ -10,16 +10,18 @@ export default function SubscribeForm() {
     setStatus('loading');
     setMessage('');
 
-    // Log the attempt
-    console.log('Attempting to subscribe with email:', email);
-
     try {
       // Get the current URL for logging
       const apiUrl = import.meta.env.PROD 
         ? `${window.location.origin}/api/subscribe`
         : '/api/subscribe';
       
-      console.log('Sending request to:', apiUrl);
+      console.log('Attempting to subscribe:', {
+        email,
+        apiUrl,
+        isProd: import.meta.env.PROD,
+        origin: window.location.origin
+      });
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -30,9 +32,21 @@ export default function SubscribeForm() {
         body: JSON.stringify({ email }),
       });
 
-      console.log('Response status:', response.status);
-      const data = await response.json();
-      console.log('API Response:', { status: response.status, data });
+      console.log('Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      let data;
+      const responseText = await response.text();
+      try {
+        data = JSON.parse(responseText);
+        console.log('Response data:', data);
+      } catch (parseError) {
+        console.error('Failed to parse response:', responseText);
+        throw new Error('Invalid response format');
+      }
 
       if (response.ok && data.success) {
         setStatus('success');
@@ -41,13 +55,14 @@ export default function SubscribeForm() {
       } else {
         setStatus('error');
         const errorMessage = data.error || 'Failed to subscribe. Please try again.';
-        console.error('Subscription failed:', errorMessage);
+        console.error('Subscription failed:', { response, data });
         setMessage(errorMessage);
       }
     } catch (error) {
       console.error('Subscription error:', {
         message: error instanceof Error ? error.message : 'Unknown error',
-        error
+        error,
+        stack: error instanceof Error ? error.stack : undefined
       });
       setStatus('error');
       setMessage('Network error. Please check your connection and try again.');

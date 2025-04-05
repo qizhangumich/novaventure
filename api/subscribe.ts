@@ -18,10 +18,16 @@ export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ) {
-  console.log('Received request:', {
+  // Log request details
+  console.log('API Request:', {
     method: request.method,
     headers: request.headers,
-    body: request.body
+    body: request.body,
+    env: {
+      hasNotionKey: !!process.env.NOTION_API_KEY,
+      hasDbId: !!process.env.NOTION_DATABASE_ID,
+      dbId: process.env.NOTION_DATABASE_ID
+    }
   });
 
   // Enable CORS
@@ -40,6 +46,15 @@ export default async function handler(
   }
 
   try {
+    // Verify environment variables
+    if (!process.env.NOTION_API_KEY || !process.env.NOTION_DATABASE_ID) {
+      console.error('Missing environment variables:', {
+        hasNotionKey: !!process.env.NOTION_API_KEY,
+        hasDbId: !!process.env.NOTION_DATABASE_ID
+      });
+      return response.status(500).json({ error: 'Server configuration error' });
+    }
+
     const { email } = request.body;
 
     if (!email) {
@@ -53,7 +68,10 @@ export default async function handler(
     }
 
     // Log the attempt
-    console.log('Attempting to add email to Notion:', email);
+    console.log('Attempting to add email to Notion:', {
+      email,
+      databaseId: DATABASE_ID
+    });
 
     // Check if email already exists
     const existingSubscribers = await notion.databases.query({
@@ -97,24 +115,27 @@ export default async function handler(
       },
     });
 
-    console.log('Successfully added to Notion:', result);
+    console.log('Successfully added to Notion:', {
+      email,
+      pageId: result.id
+    });
 
     return response.status(200).json({
       success: true,
-      message: 'Successfully subscribed!',
+      message: 'Successfully subscribed!'
     });
   } catch (error) {
-    console.error('Subscription error:', error);
-    // Check if it's a Notion API error
-    if (error.code) {
-      console.error('Notion API error:', {
-        code: error.code,
-        message: error.message,
-        status: error.status
-      });
-    }
+    console.error('Subscription error:', {
+      error,
+      stack: error.stack,
+      code: error.code,
+      message: error.message,
+      status: error.status
+    });
+
     return response.status(500).json({
       error: 'Failed to subscribe. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 } 
