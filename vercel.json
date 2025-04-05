@@ -49,6 +49,5 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "domains": ["www.thenovaventure.com", "thenovaventure.com"]
+  "trailingSlash": false
 } 
