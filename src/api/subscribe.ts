@@ -1,18 +1,19 @@
 import { Client } from '@notionhq/client';
 
-// Initialize the Notion client
+// ✅ 用 Node.js 环境变量（Vercel Serverless 支持的方式）
 const notion = new Client({
-  auth: import.meta.env.VITE_NOTION_SECRET,
+  auth: process.env.NOTION_SECRET,
 });
 
-// Validate email format
+const databaseId = process.env.NOTION_DATABASE_ID!;
+
 const isValidEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-export async function handler(request: Request) {
-  // Enable CORS
+// ✅ Vercel 默认导出 handler 函数（适用于 Vite + Serverless）
+export default async function handler(request: Request): Promise<Response> {
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
@@ -46,9 +47,8 @@ export async function handler(request: Request) {
       });
     }
 
-    // Check if email already exists
-    const existingSubscribers = await notion.databases.query({
-      database_id: import.meta.env.VITE_NOTION_DATABASE_ID!,
+    const existing = await notion.databases.query({
+      database_id: databaseId,
       filter: {
         property: 'Email',
         title: {
@@ -57,7 +57,7 @@ export async function handler(request: Request) {
       },
     });
 
-    if (existingSubscribers.results.length > 0) {
+    if (existing.results.length > 0) {
       return new Response(JSON.stringify({ error: 'Email already subscribed' }), {
         status: 400,
         headers: {
@@ -67,25 +67,14 @@ export async function handler(request: Request) {
       });
     }
 
-    // Add new subscriber
     await notion.pages.create({
-      parent: {
-        database_id: import.meta.env.VITE_NOTION_DATABASE_ID!,
-      },
+      parent: { database_id: databaseId },
       properties: {
         Email: {
-          title: [
-            {
-              text: {
-                content: email,
-              },
-            },
-          ],
+          title: [{ text: { content: email } }],
         },
         SubscribeAt: {
-          date: {
-            start: new Date().toISOString(),
-          },
+          date: { start: new Date().toISOString() },
         },
       },
     });
@@ -107,4 +96,4 @@ export async function handler(request: Request) {
       },
     });
   }
-} 
+}

@@ -16,10 +16,9 @@ const isValidEmail = (email: string) => {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   // Handle preflight request
   if (req.method === 'OPTIONS') {
@@ -38,10 +37,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // Verify environment variables
     if (!process.env.NOTION_API_KEY || !process.env.NOTION_DATABASE_ID) {
-      console.error('Missing environment variables:', {
-        hasNotionKey: !!process.env.NOTION_API_KEY,
-        hasDbId: !!process.env.NOTION_DATABASE_ID
-      });
       return res.status(500).json({ error: 'Server configuration error' });
     }
 
@@ -50,23 +45,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       parent: { database_id: DATABASE_ID! },
       properties: {
         Email: {
-          title: [
-            {
-              text: {
-                content: email
-              }
-            }
-          ]
+          title: [{ text: { content: email } }]
         },
         Status: {
-          select: {
-            name: 'Active'
-          }
+          select: { name: 'Active' }
         },
         'Subscription Date': {
-          date: {
-            start: new Date().toISOString()
-          }
+          date: { start: new Date().toISOString() }
         }
       }
     });
