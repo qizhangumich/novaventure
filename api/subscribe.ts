@@ -13,54 +13,43 @@ const isValidEmail = (email: string) => {
   return emailRegex.test(email);
 };
 
+// Helper function to create JSON response
+function createJsonResponse(data: any, status: number = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
 async function handler(request: Request): Promise<Response> {
   // Handle preflight request
   if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
+    return createJsonResponse(null, 200);
   }
 
   if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return createJsonResponse({ error: 'Method not allowed' }, 405);
   }
 
   try {
     const { email } = await request.json();
 
     if (!email || !isValidEmail(email)) {
-      return new Response(JSON.stringify({ error: 'Invalid email address' }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+      return createJsonResponse({ error: 'Invalid email address' }, 400);
     }
 
     // Verify environment variables
     if (!process.env.NOTION_SECRET || !process.env.NOTION_DATABASE_ID) {
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+      return createJsonResponse({ error: 'Server configuration error' }, 500);
     }
 
     // Add to Notion database
-    await notion.pages.create({
+    const response = await notion.pages.create({
       parent: { database_id: DATABASE_ID! },
       properties: {
         Email: {
@@ -75,22 +64,16 @@ async function handler(request: Request): Promise<Response> {
       }
     });
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+    return createJsonResponse({ 
+      success: true,
+      message: 'Successfully subscribed'
     });
   } catch (error) {
     console.error('Error adding subscriber:', error);
-    return new Response(JSON.stringify({ error: 'Failed to add subscriber' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return createJsonResponse({ 
+      error: 'Failed to add subscriber',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, 500);
   }
 }
 
