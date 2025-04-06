@@ -11,23 +11,17 @@ export default function SubscribeForm() {
     setMessage('');
 
     try {
-      // Get the current URL for logging
-      const apiUrl = import.meta.env.PROD 
-        ? `${window.location.origin}/api/subscribe`
-        : '/api/subscribe';
-      
       console.log('Attempting to subscribe:', {
         email,
-        apiUrl,
-        isProd: import.meta.env.PROD,
+        apiUrl: '/api/subscribe',
+        isProduction: import.meta.env.PROD,
         origin: window.location.origin
       });
 
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify({ email }),
       });
