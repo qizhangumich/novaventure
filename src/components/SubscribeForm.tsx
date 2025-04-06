@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function SubscribeForm() {
+const SubscribeForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -13,56 +13,55 @@ export default function SubscribeForm() {
     try {
       const response = await fetch('/api/subscribe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
-      
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        // JSON parse failed
+      }
+
       if (!response.ok) {
-        throw new Error(data.error || 'Subscription failed');
+        throw new Error(data?.error || `Error ${response.status}`);
       }
 
       setStatus('success');
-      setMessage('✅ Successfully subscribed! Thank you for joining NovaVenture.');
+      setMessage('✅ Successfully subscribed!');
       setEmail('');
-    } catch (error) {
-      console.error('Subscription error:', error);
+    } catch (err) {
+      console.error('Subscription error:', err);
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Subscription failed. Please try again.');
+      setMessage(err instanceof Error ? err.message : 'Something went wrong.');
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required
-            className="flex-1 px-4 py-3 rounded-xl bg-[#0A0F24] border border-[#490314] focus:border-[#FF6B35] focus:outline-none text-white placeholder-gray-400"
-          />
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            className="bg-[#490314] hover:bg-[#FF6B35] text-white py-3 px-8 rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
-          </button>
-        </div>
-        {message && (
-          <p className={`text-center text-sm ${
-            status === 'success' ? 'text-green-400' : 'text-red-400'
-          }`}>
-            {message}
-          </p>
-        )}
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
+      <input
+        type="email"
+        value={email}
+        required
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Your email"
+        className="w-full border rounded px-4 py-2 text-sm"
+      />
+      <button
+        type="submit"
+        disabled={status === 'loading'}
+        className="w-full bg-black text-white px-4 py-2 rounded hover:bg-opacity-80 transition"
+      >
+        {status === 'loading' ? 'Submitting...' : 'Subscribe'}
+      </button>
+      {message && (
+        <p className={`text-sm ${status === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+          {message}
+        </p>
+      )}
+    </form>
   );
-} 
+};
+
+export default SubscribeForm;
