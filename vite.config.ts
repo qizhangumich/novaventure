@@ -8,27 +8,30 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    manifest: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'vendor-react';
+            }
+            return 'vendor';
+          }
         },
-        assetFileNames: 'assets/[name]-[hash][extname]',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-      },
-    },
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash][extname]'
+      }
+    }
   },
   server: {
     port: 3000,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
-        changeOrigin: true,
-      },
-    },
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom'],
-  },
+        changeOrigin: true
+      }
+    }
+  }
 }); 
