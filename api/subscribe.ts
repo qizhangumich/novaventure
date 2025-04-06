@@ -3,7 +3,7 @@ import { Client } from '@notionhq/client';
 
 // Initialize Notion client
 const notion = new Client({
-  auth: process.env.NOTION_API_KEY,
+  auth: process.env.NOTION_SECRET,
 });
 
 const DATABASE_ID = process.env.NOTION_DATABASE_ID;
@@ -36,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Verify environment variables
-    if (!process.env.NOTION_API_KEY || !process.env.NOTION_DATABASE_ID) {
+    if (!process.env.NOTION_SECRET || !process.env.NOTION_DATABASE_ID) {
       return res.status(500).json({ error: 'Server configuration error' });
     }
 
