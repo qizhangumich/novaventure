@@ -11,13 +11,6 @@ export default function SubscribeForm() {
     setMessage('');
 
     try {
-      console.log('Attempting to subscribe:', {
-        email,
-        apiUrl: '/api/subscribe',
-        isProduction: import.meta.env.PROD,
-        origin: window.location.origin
-      });
-
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: {
@@ -26,21 +19,7 @@ export default function SubscribeForm() {
         body: JSON.stringify({ email }),
       });
 
-      console.log('Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-
-      let data;
-      const responseText = await response.text();
-      try {
-        data = JSON.parse(responseText);
-        console.log('Response data:', data);
-      } catch (parseError) {
-        console.error('Failed to parse response:', responseText);
-        throw new Error('Invalid response format');
-      }
+      const data = await response.json();
 
       if (response.ok && data.success) {
         setStatus('success');
@@ -48,16 +27,10 @@ export default function SubscribeForm() {
         setEmail('');
       } else {
         setStatus('error');
-        const errorMessage = data.error || 'Failed to subscribe. Please try again.';
-        console.error('Subscription failed:', { response, data });
-        setMessage(errorMessage);
+        setMessage(data.error || 'Failed to subscribe. Please try again.');
       }
     } catch (error) {
-      console.error('Subscription error:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        error,
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      console.error('Subscription error:', error);
       setStatus('error');
       setMessage('Network error. Please check your connection and try again.');
     }
