@@ -13,54 +13,41 @@ const isValidEmail = (email: string) => {
   return emailRegex.test(email);
 };
 
-// Helper function to create JSON response
-function createJsonResponse(data: any, status: number = 200) {
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
+
+function json(data: any, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      ...corsHeaders(),
     },
   });
 }
 
-const handler = async (request: Request): Promise<Response> => {
-  // Handle CORS preflight
+export default async function handler(request: Request): Promise<Response> {
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
+      headers: corsHeaders(),
     });
   }
 
   if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return json({ error: 'Method not allowed' }, 405);
   }
 
   try {
-    const body = await request.json();
-    const email = body.email;
+    const { email } = await request.json();
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return new Response(JSON.stringify({ error: 'Invalid email' }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+      return json({ error: 'Invalid email' }, 400);
     }
 
     // Verify environment variables
@@ -69,19 +56,11 @@ const handler = async (request: Request): Promise<Response> => {
         NOTION_SECRET: !!process.env.NOTION_SECRET,
         NOTION_DATABASE_ID: !!process.env.NOTION_DATABASE_ID
       });
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+      return json({ error: 'Server configuration error' }, 500);
     }
 
     await notion.pages.create({
-      parent: {
-        database_id: process.env.NOTION_DATABASE_ID,
-      },
+      parent: { database_id: process.env.NOTION_DATABASE_ID },
       properties: {
         Email: {
           title: [{ text: { content: email } }],
@@ -92,26 +71,12 @@ const handler = async (request: Request): Promise<Response> => {
       },
     });
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
-  } catch (err) {
-    console.error('Error:', err);
-    return new Response(JSON.stringify({ 
-      error: 'Server error',
-      message: err instanceof Error ? err.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+    return json({ success: true });
+  } catch (error) {
+    console.error('Subscription error:', error);
+    return json({ 
+      error: 'Internal Server Error',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, 500);
   }
-};
-
-export default handler; 
+} 
