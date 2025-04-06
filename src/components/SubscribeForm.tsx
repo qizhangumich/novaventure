@@ -20,19 +20,18 @@ export default function SubscribeForm() {
       });
 
       const data = await response.json();
-
-      if (response.ok && data.success) {
-        setStatus('success');
-        setMessage('✅ Successfully subscribed! Thank you for joining NovaVenture.');
-        setEmail('');
-      } else {
-        setStatus('error');
-        setMessage(data.error || 'Failed to subscribe. Please try again.');
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Subscription failed');
       }
+
+      setStatus('success');
+      setMessage('✅ Successfully subscribed! Thank you for joining NovaVenture.');
+      setEmail('');
     } catch (error) {
       console.error('Subscription error:', error);
       setStatus('error');
-      setMessage('Network error. Please check your connection and try again.');
+      setMessage(error instanceof Error ? error.message : 'Subscription failed. Please try again.');
     }
   };
 
