@@ -39,28 +39,30 @@ const SubscribeForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
-      <input
-        type="email"
-        value={email}
-        required
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Your email"
-        className="w-full border rounded px-4 py-2 text-sm"
-      />
-      <button
-        type="submit"
-        disabled={status === 'loading'}
-        className="w-full bg-black text-white px-4 py-2 rounded hover:bg-opacity-80 transition"
-      >
-        {status === 'loading' ? 'Submitting...' : 'Subscribe'}
-      </button>
-      {message && (
-        <p className={`text-sm ${status === 'error' ? 'text-red-500' : 'text-green-600'}`}>
-          {message}
-        </p>
-      )}
-    </form>
+    <div className="flex justify-center items-center w-full">
+      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
+        <input
+          type="email"
+          value={email}
+          required
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Your email"
+          className="w-full border rounded px-4 py-2 text-sm text-black"
+        />
+        <button
+          type="submit"
+          disabled={status === 'loading'}
+          className="w-full bg-black text-white px-4 py-2 rounded hover:bg-opacity-80 transition"
+        >
+          {status === 'loading' ? 'Submitting...' : 'Subscribe'}
+        </button>
+        {message && (
+          <p className={`text-sm ${status === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+            {message}
+          </p>
+        )}
+      </form>
+    </div>
   );
 };
 
